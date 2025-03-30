@@ -1,39 +1,30 @@
+import requests
 from fastapi import FastAPI
-import os
 
-# Ruta donde están las bases de datos
-DBS_DIR = r"C:\Users\MalwareTech\Desktop\dbs\dbs"
+# URL de tu API local expuesta con Ngrok
+NGROK_URL = "https://6111-190-173-58-152.ngrok-free.app"  
 
 app = FastAPI()
 
 @app.get("/")
 def home():
-    return {"message": "API de bases de datos activa"}
+    return {"message": "API en Render funcionando"}
 
 @app.get("/list_dbs/")
 def list_dbs():
-    """Lista todas las bases de datos en la carpeta."""
+    """Solicita la lista de bases de datos desde la API local."""
     try:
-        files = os.listdir(DBS_DIR)
-        return {"databases": files}
-    except Exception as e:
-        return {"error": str(e)}
+        response = requests.get(f"{NGROK_URL}/list_dbs/")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"No se pudo conectar a la API local: {str(e)}"}
 
 @app.get("/read_db/{filename}")
 def read_db(filename: str):
-    """Lee el contenido de una base de datos específica."""
-    file_path = os.path.join(DBS_DIR, filename)
-
-    if not os.path.exists(file_path):
-        return {"error": "Archivo no encontrado"}
-
+    """Solicita el contenido de un archivo de la base de datos."""
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read()
-        return {"filename": filename, "content": content}
-    except Exception as e:
-        return {"error": str(e)}
+        response = requests.get(f"{NGROK_URL}/read_db/{filename}")
+        return response.json()
+    except requests.exceptions.RequestException as e:
+        return {"error": f"No se pudo conectar a la API local: {str(e)}"}
 
-if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
